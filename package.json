@@ -1,7 +1,7 @@
 {
   "name": "customer_app",
   "productName": "客商信息管理",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "客商信息管理",
   "main": "./out/main/index.js",
   "author": "www.kinslot.com",

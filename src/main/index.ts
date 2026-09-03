@@ -4,6 +4,40 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import * as Events from "./events";
 import { createMenu } from "./menus";
+import { autoUpdater } from "electron-updater";
+
+autoUpdater.autoDownload = true; // 检测到新版本自动下载
+autoUpdater.autoInstallOnAppQuit = true; // 关闭应用自动安装更新
+autoUpdater.allowDowngrade = false; // 禁止版本降级
+
+console.log("当前应用版本：", app.getVersion());
+
+function initUpdateEvent(mainWindow) {
+  // 开始检测更新
+  autoUpdater.on("checking-for-update", () => {
+    mainWindow.webContents.send("update:status", "正在检测最新版本...");
+  }); // 发现新版本
+
+  autoUpdater.on("update-available", (info) => {
+    mainWindow.webContents.send("update:available", info);
+  }); // 无新版本
+
+  autoUpdater.on("update-not-available", () => {
+    mainWindow.webContents.send("update:status", "当前已是最新版本");
+  }); // 更新下载进度
+
+  autoUpdater.on("download-progress", (progress) => {
+    mainWindow.webContents.send("update:progress", progress.percent.toFixed(2));
+  }); // 下载完成
+
+  autoUpdater.on("update-downloaded", () => {
+    mainWindow.webContents.send("update:finished", "更新包下载完成，重启即可生效");
+  }); // 更新报错
+
+  autoUpdater.on("error", (err) => {
+    mainWindow.webContents.send("update:error", "更新失败：" + err.message);
+  });
+}
 
 const WINDOW_WIDTH = 1440;
 const WINDOW_HEIGHT = 900;
@@ -52,6 +86,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+  initUpdateEvent(mainWindow);
   // mainWindow.webContents.openDevTools(); // 打开调试工具
 }
 
