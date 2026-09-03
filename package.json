@@ -56,9 +56,9 @@
   },
   "build": {
     "publish": {
-      "provider": "git@github.com:beierbatuofu/customer-app.git",
+      "provider": "github",
       "owner": "beierbatuofu",
-      "repo": "customer_app",
+      "repo": "https://github.com/beierbatuofu/customer-app.git",
       "releaseType": "release"
     }
   }
