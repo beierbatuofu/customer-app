@@ -14925,6 +14925,12 @@ function sendEvent(sEvt, args) {
     return Promise.reject(err);
   }
 }
+function ListenEvent(evtName, cb) {
+  const ipcRenderer = window.electron.ipcRenderer;
+  ipcRenderer.on(evtName, (_, res) => {
+    cb(res);
+  });
+}
 function listenMenuAction(cb) {
   const ipcRenderer = window.electron.ipcRenderer;
   ipcRenderer.on("open-setting-window", (_event, value) => cb(value));
@@ -25561,7 +25567,7 @@ const ProviderChildren = (props) => {
     children,
     csp: customCsp,
     autoInsertSpaceInButton,
-    alert,
+    alert: alert2,
     affix,
     anchor,
     app,
@@ -25674,7 +25680,7 @@ const ProviderChildren = (props) => {
   const baseConfig = {
     csp,
     autoInsertSpaceInButton,
-    alert,
+    alert: alert2,
     affix,
     anchor,
     app,
@@ -79711,6 +79717,9 @@ const NewCustomerClose = gt.div`
   right: -10px;
   cursor: pointer;
 `;
+ListenEvent("update:available", (info) => {
+  alert(JSON.stringify(info));
+});
 const IndexPage = () => {
   const names = reactExports.useRef([]);
   const [data, setData] = reactExports.useState([]);
