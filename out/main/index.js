@@ -5,6 +5,7 @@ const utils = require("@electron-toolkit/utils");
 const crypto = require("crypto");
 const axios = require("axios");
 const electronUpdater = require("electron-updater");
+const log = require("electron-log");
 const icon = path.join(__dirname, "../../resources/icon.png");
 class BaseEvent {
   eventName;
@@ -2596,25 +2597,29 @@ const createMenu = (win) => {
 electronUpdater.autoUpdater.autoDownload = true;
 electronUpdater.autoUpdater.autoInstallOnAppQuit = true;
 electronUpdater.autoUpdater.allowDowngrade = false;
-console.log("当前应用版本：", electron.app.getVersion());
-function initUpdateEvent(mainWindow2) {
+electronUpdater.autoUpdater.logger = log;
+electronUpdater.autoUpdater.logger.transports.file.level = "info";
+function initUpdateEvent(win) {
+  console.log("当前应用版本1：", electron.app.getVersion());
+  win.webContents.send("get:version", electron.app.getVersion());
   electronUpdater.autoUpdater.on("checking-for-update", () => {
-    mainWindow2.webContents.send("update:status", "正在检测最新版本...");
+    win.webContents.send("update:status", "正在检测最新版本...");
   });
   electronUpdater.autoUpdater.on("update-available", (info) => {
-    mainWindow2.webContents.send("update:available", info);
+    console.log("发现新版本", info.version);
+    win.webContents.send("update:available", info);
   });
   electronUpdater.autoUpdater.on("update-not-available", () => {
-    mainWindow2.webContents.send("update:status", "当前已是最新版本");
+    win.webContents.send("update:status", "当前已是最新版本");
   });
   electronUpdater.autoUpdater.on("download-progress", (progress) => {
-    mainWindow2.webContents.send("update:progress", progress.percent.toFixed(2));
+    win.webContents.send("update:progress", progress.percent.toFixed(2));
   });
   electronUpdater.autoUpdater.on("update-downloaded", () => {
-    mainWindow2.webContents.send("update:finished", "更新包下载完成，重启即可生效");
+    win.webContents.send("update:finished", "更新包下载完成，重启即可生效");
   });
   electronUpdater.autoUpdater.on("error", (err) => {
-    mainWindow2.webContents.send("update:error", "更新失败：" + err.message);
+    win.webContents.send("update:error", "更新失败：" + err.message);
   });
 }
 const WINDOW_WIDTH = 1440;
@@ -2646,6 +2651,7 @@ function createWindow() {
     mainWindow.show();
     const menus = createMenu(mainWindow);
     electron.Menu.setApplicationMenu(menus);
+    initUpdateEvent(mainWindow);
   });
   mainWindow.webContents.setWindowOpenHandler((details) => {
     electron.shell.openExternal(details.url);
@@ -2656,7 +2662,6 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
-  initUpdateEvent(mainWindow);
 }
 electron.app.whenReady().then(() => {
   utils.electronApp.setAppUserModelId("com.electron");

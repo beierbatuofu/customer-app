@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { sendEvent, listenMenuAction } from "@renderer/utils";
+import { sendEvent, listenMenuAction, ListenEvent } from "@renderer/utils";
 import { styled } from "styled-components";
 import { Flex, Button, message, Tooltip, Modal, Tour } from "antd";
 import { kp_def_config } from "./config";
@@ -31,7 +31,9 @@ const NewCustomerClose = styled.div`
   right: -10px;
   cursor: pointer;
 `;
-
+ListenEvent("update:available", (info) => {
+  alert(JSON.stringify(info));
+});
 const IndexPage: React.FC = () => {
   const names = useRef<string[]>([]);
   //TODO: 从数据库中读取数据,而不是从mock中读取

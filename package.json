@@ -1,7 +1,7 @@
 {
   "name": "customer_app",
   "productName": "客商信息管理",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "客商信息管理",
   "main": "./out/main/index.js",
   "author": "www.kinslot.com",
@@ -27,6 +27,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "antd": "^6.3.7",
     "axios": "^1.16.1",
+    "electron-log": "^5.4.4",
     "electron-updater": "^6.3.9",
     "react-router-dom": "^7.15.0",
     "sass": "^1.99.0",

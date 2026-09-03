@@ -5,37 +5,44 @@ import icon from "../../resources/icon.png?asset";
 import * as Events from "./events";
 import { createMenu } from "./menus";
 import { autoUpdater } from "electron-updater";
+import log from "electron-log";
 
 autoUpdater.autoDownload = true; // 检测到新版本自动下载
 autoUpdater.autoInstallOnAppQuit = true; // 关闭应用自动安装更新
 autoUpdater.allowDowngrade = false; // 禁止版本降级
+autoUpdater.logger = log as any;
 
-console.log("当前应用版本：", app.getVersion());
+(autoUpdater.logger as any).transports.file.level = "info";
 
-function initUpdateEvent(mainWindow) {
+function initUpdateEvent(win) {
+  console.log("当前应用版本1：", app.getVersion());
+  win.webContents.send("get:version", app.getVersion());
   // 开始检测更新
   autoUpdater.on("checking-for-update", () => {
-    mainWindow.webContents.send("update:status", "正在检测最新版本...");
-  }); // 发现新版本
-
+    win.webContents.send("update:status", "正在检测最新版本...");
+  });
+  // 发现新版本
   autoUpdater.on("update-available", (info) => {
-    mainWindow.webContents.send("update:available", info);
-  }); // 无新版本
-
+    console.log("发现新版本", info.version);
+    win.webContents.send("update:available", info);
+  });
+  // 无新版本
   autoUpdater.on("update-not-available", () => {
-    mainWindow.webContents.send("update:status", "当前已是最新版本");
-  }); // 更新下载进度
-
+    win.webContents.send("update:status", "当前已是最新版本");
+  });
+  // 更新下载进度
   autoUpdater.on("download-progress", (progress) => {
-    mainWindow.webContents.send("update:progress", progress.percent.toFixed(2));
-  }); // 下载完成
+    win.webContents.send("update:progress", progress.percent.toFixed(2));
+  });
+  // 下载完成
 
   autoUpdater.on("update-downloaded", () => {
-    mainWindow.webContents.send("update:finished", "更新包下载完成，重启即可生效");
-  }); // 更新报错
+    win.webContents.send("update:finished", "更新包下载完成，重启即可生效");
+  });
+  // 更新报错
 
   autoUpdater.on("error", (err) => {
-    mainWindow.webContents.send("update:error", "更新失败：" + err.message);
+    win.webContents.send("update:error", "更新失败：" + err.message);
   });
 }
 
@@ -71,6 +78,7 @@ function createWindow(): void {
     mainWindow.show();
     const menus = createMenu(mainWindow);
     Menu.setApplicationMenu(menus);
+    initUpdateEvent(mainWindow);
   });
   // process.platform == "darwin" ? app?.dock?.hide() : mainWindow.setMenu(null);
 
@@ -86,7 +94,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
-  initUpdateEvent(mainWindow);
+
   // mainWindow.webContents.openDevTools(); // 打开调试工具
 }
 
